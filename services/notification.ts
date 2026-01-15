@@ -12,32 +12,49 @@ const OWNER_PHONE_NUMBER = "919876543210";
 const sentBookingIds = new Set<string>();
 
 // --- WHATSAPP LOGIC ---
-const formatWhatsAppMessage = (booking: Booking, recipient: 'customer' | 'owner'): string => {
-  const isOwner = recipient === 'owner';
-  
+const formatWhatsAppMessage = (booking: Booking): string => {
   return `
-🚗 *NCR DRIVE - Booking Alert* 🚗
+✅ *BOOKING CONFIRMED - NCR DRIVE*
 --------------------------------
-*Ref ID:* ${booking.transactionId}
-*Status:* Confirmed ✅
+Hi *${booking.customerName}*,
 
-*Vehicle:* ${booking.carName}
-*Dates:* ${new Date(booking.startDate).toLocaleDateString()} to ${new Date(booking.endDate).toLocaleDateString()}
-*Pickup:* ${booking.location}
+Your booking for *${booking.carName}* has been approved! 🚗💨
 
-*Customer:* ${booking.customerName}
-*Phone:* ${booking.customerPhone}
-*Total:* ₹${booking.totalCost.toLocaleString()}
-*Advance:* ₹${(booking.advanceAmount || 0).toLocaleString()}
+📋 *Trip Details:*
+• Dates: ${new Date(booking.startDate).toLocaleDateString()} - ${new Date(booking.endDate).toLocaleDateString()}
+• Pickup: ${booking.location}
+• Ref ID: ${booking.transactionId}
+
+👤 *Customer Details:*
+• Name: ${booking.customerName}
+• *WhatsApp Contact Number:* ${booking.customerPhone}
+
+💰 *Payment:*
+• Total: ₹${booking.totalCost.toLocaleString()}
+• Advance: ₹${(booking.advanceAmount || 0).toLocaleString()} (Paid)
+
 --------------------------------
-${isOwner ? '🔴 *Action:* Verify KYC & Handover Keys.' : 'Please bring your ID. Safe travels!'}
+📞 *Owner Support:* ${OWNER_PHONE_NUMBER}
+
+Please carry your original Driving License & Aadhar Card.
+Safe Travels!
 `.trim();
 };
 
 export const sendWhatsAppNotification = async (booking: Booking) => {
-  const ownerMsg = formatWhatsAppMessage(booking, 'owner');
-  const encodedMsg = encodeURIComponent(ownerMsg);
-  return `https://wa.me/${OWNER_PHONE_NUMBER}?text=${encodedMsg}`;
+  // Logic updated: Send TO the CUSTOMER, not the owner.
+  
+  // Sanitize phone number (remove spaces, dashes)
+  let phone = booking.customerPhone.replace(/\D/g, '');
+  
+  // Default to India (91) if 10 digits provided
+  if (phone.length === 10) phone = '91' + phone;
+  
+  const msg = formatWhatsAppMessage(booking);
+  const encodedMsg = encodeURIComponent(msg);
+  
+  // Generates a link to open WhatsApp Chat with the CUSTOMER with the pre-filled confirmation message
+  return `https://wa.me/${phone}?text=${encodedMsg}`;
 };
 
 // --- EMAIL LOGIC (Via Google Apps Script) ---
