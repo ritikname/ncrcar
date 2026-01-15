@@ -1,181 +1,119 @@
 
 import { Car, Booking } from '../types';
-import { getStoredCars, saveCars, getStoredBookings, saveBookings, getAllUsers, addUserToRegistry } from './storage';
 
-// Mock delay to simulate network latency
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// In production, relative URL works because Frontend & Backend are on same domain (or proxy)
+const API_URL = '/api';
 
-// Mock User Session Management
-const SESSION_KEY = 'ncr_drive_session_v1';
-const ACCOUNTS_KEY = 'ncr_drive_accounts_v1';
-
-const getSession = () => {
-    const s = localStorage.getItem(SESSION_KEY);
-    return s ? JSON.parse(s) : null;
+const handleResponse = async (res: Response) => {
+  const contentType = res.headers.get('content-type');
+  if (!res.ok) {
+    let errorMsg = 'Request failed';
+    try {
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        errorMsg = data.error || errorMsg;
+      } else {
+        errorMsg = await res.text();
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
+    throw new Error(errorMsg);
+  }
+  return res.json();
 };
-const setSession = (user: any) => localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-const clearSession = () => localStorage.removeItem(SESSION_KEY);
 
 export const api = {
   auth: {
-    me: async () => {
-      await delay(500);
-      const user = getSession();
-      if (!user) throw new Error('Not logged in');
-      return user;
-    },
-    login: async (creds: any) => {
-      await delay(800);
-      
-      // Hardcoded Owner Credentials for Demo
-      if (creds.email === 'admin@ncrdrive.com' && creds.password === 'admin123') {
-         const user = { name: 'Owner', email: creds.email, role: 'owner', phone: '9999999999' };
-         setSession(user);
-         return { success: true, role: 'owner', user };
-      }
-      
-      // Customer Login
-      const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]');
-      const account = accounts.find((a: any) => a.email === creds.email && a.password === creds.password);
-      
-      if (account) {
-         const user = { name: account.name, email: account.email, phone: account.phone, role: 'customer' };
-         setSession(user);
-         return { success: true, role: 'customer', user };
-      }
-
-      throw new Error('Invalid credentials');
-    },
-    signup: async (data: any) => {
-       await delay(800);
-       const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]');
-       if (accounts.some((a: any) => a.email === data.email)) {
-         throw new Error('Email already exists');
-       }
-       
-       // Store new account
-       accounts.push({ ...data, role: 'customer' });
-       localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-       
-       // Add to owner's user registry
-       addUserToRegistry({ name: data.name, phone: data.phone });
-       
-       return { success: true };
-    },
-    logout: async () => {
-       await delay(300);
-       clearSession();
-       return { success: true };
-    },
-    forgotPassword: async (email: string) => {
-       await delay(600);
-       return { message: 'If account exists, email sent.' };
-    },
-    resetPassword: async (data: any) => {
-       await delay(600);
-       // Mock password reset logic (success always for demo)
-       return { success: true };
-    },
+    me: () => fetch(`${API_URL}/auth/me`).then(handleResponse),
+    
+    login: (creds: any) => fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(creds)
+    }).then(handleResponse),
+    
+    signup: (data: any) => fetch(`${API_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    
+    logout: () => fetch(`${API_URL}/auth/logout`, { method: 'POST' }).then(handleResponse),
+    
+    forgotPassword: (email: string) => fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    }).then(handleResponse),
+    
+    resetPassword: (data: any) => fetch(`${API_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(handleResponse),
   },
+  
   cars: {
-    getAll: async () => {
-      await delay(600);
-      return getStoredCars();
+    getAll: async (): Promise<Car[]> => {
+      const cars = await fetch(`${API_URL}/cars`).then(handleResponse);
+      return cars.map((c: any) => ({
+        ...c,
+        imageBase64: c.image_url, 
+        pricePerDay: c.price_per_day,
+        totalStock: c.total_stock,
+        fuelType: c.fuel_type,
+        id: c.uuid || c.id.toString()
+      }));
     },
+    
     add: async (formData: FormData) => {
-       await delay(1000);
-       // Manually process FormData for local storage simulation
-       const name = formData.get('name') as string;
-       const price = Number(formData.get('price'));
-       const fuelType = formData.get('fuelType');
-       const transmission = formData.get('transmission');
-       const category = formData.get('category');
-       const seats = Number(formData.get('seats'));
-       const totalStock = Number(formData.get('totalStock'));
-       const rating = Number(formData.get('rating'));
-       
-       // Convert uploaded file to Base64
-       const imageFile = formData.get('image') as File;
-       let imageBase64 = '';
-       if (imageFile) {
-          try {
-            imageBase64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(imageFile);
-            });
-          } catch (e) {
-            console.error("Image processing failed", e);
-          }
-       }
-
-       const newCar: Car = {
-          id: crypto.randomUUID(),
-          name,
-          pricePerDay: price,
-          imageBase64: imageBase64 || 'https://via.placeholder.com/400x300?text=No+Image',
-          galleryImages: [],
-          status: 'available',
-          createdAt: Date.now(),
-          fuelType: fuelType as any,
-          transmission: transmission as any,
-          seats,
-          rating: rating || 4.5,
-          totalStock,
-          category: category as any
-       };
-
-       const cars = getStoredCars();
-       const updatedCars = [newCar, ...cars];
-       saveCars(updatedCars);
-       
-       return { success: true, carId: newCar.id };
+      return fetch(`${API_URL}/cars`, {
+        method: 'POST',
+        body: formData, 
+      }).then(handleResponse);
     },
+
+    updateStatus: (id: string, status: string) => fetch(`${API_URL}/cars/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+    }).then(handleResponse)
   },
+  
   bookings: {
-    create: async (data: any) => {
-      await delay(1000);
-      const newBooking: Booking = {
-         id: crypto.randomUUID(),
-         createdAt: Date.now(),
-         status: 'confirmed',
-         isApproved: false,
-         ...data
-      };
-      
-      const bookings = getStoredBookings();
-      saveBookings([newBooking, ...bookings]);
-      return { success: true, bookingId: newBooking.id };
+    create: (data: any) => fetch(`${API_URL}/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    
+    getMyBookings: async (): Promise<Booking[]> => {
+      const bookings = await fetch(`${API_URL}/bookings`).then(handleResponse);
+      return bookings.map((b: any) => ({
+        ...b,
+        carName: b.car_name,
+        carImage: b.car_image,
+        userEmail: b.user_email,
+        customerName: b.customer_name,
+        customerPhone: b.customer_phone,
+        startDate: b.start_date,
+        endDate: b.end_date,
+        totalCost: b.total_cost,
+        advanceAmount: b.advance_amount,
+        transactionId: b.transaction_id,
+        isApproved: b.is_approved === 1,
+        userLocation: b.location,
+        aadharFront: b.aadhar_front,
+        aadharBack: b.aadhar_back,
+        licensePhoto: b.license_photo
+      }));
     },
-    getMyBookings: async () => {
-       await delay(500);
-       const user = getSession();
-       if (!user) throw new Error('Unauthorized');
-       
-       const allBookings = getStoredBookings();
-       if (user.role === 'owner') {
-          return allBookings;
-       } else {
-          return allBookings.filter(b => b.email === user.email || b.customerPhone === user.phone);
-       }
-    },
-    updateStatus: async (id: string, updates: { status?: string, isApproved?: boolean }) => {
-       await delay(400);
-       const bookings = getStoredBookings();
-       const index = bookings.findIndex(b => b.id === id);
-       
-       if (index !== -1) {
-          if (updates.status) {
-              bookings[index].status = updates.status as any;
-          }
-          if (updates.isApproved !== undefined) {
-              bookings[index].isApproved = updates.isApproved;
-          }
-          saveBookings(bookings);
-          return { success: true };
-       }
-       throw new Error('Booking not found');
-    }
+    
+    updateStatus: (id: string, updates: any) => fetch(`${API_URL}/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).then(handleResponse)
   }
 };

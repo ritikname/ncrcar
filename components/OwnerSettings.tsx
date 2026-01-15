@@ -1,12 +1,13 @@
 
-import React, { useState, useRef } from 'react';
-import { HeroSlide } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { HeroSlide, Booking, UserProfile } from '../types';
+import { getStoredBookings, getAllUsers, getStoredCars } from '../services/storage';
 
 interface OwnerSettingsProps {
   currentQrCode?: string;
   heroSlides?: HeroSlide[];
   onSave: (qrCodeBase64: string) => void;
-  onSaveSlides: (slides: HeroSlide[]) => void; // New prop
+  onSaveSlides: (slides: HeroSlide[]) => void;
 }
 
 const OwnerSettings: React.FC<OwnerSettingsProps> = ({ currentQrCode, heroSlides = [], onSave, onSaveSlides }) => {
@@ -18,6 +19,20 @@ const OwnerSettings: React.FC<OwnerSettingsProps> = ({ currentQrCode, heroSlides
   const [slideDesc, setSlideDesc] = useState('');
   const [slideImage, setSlideImage] = useState<string | null>(null);
   const slideInputRef = useRef<HTMLInputElement>(null);
+
+  // Data Inspector State
+  const [debugData, setDebugData] = useState<{ bookings: Booking[], users: any[], totalCars: number } | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
+
+  useEffect(() => {
+    if (showDebug) {
+        setDebugData({
+            bookings: getStoredBookings(),
+            users: getAllUsers(),
+            totalCars: getStoredCars().length
+        });
+    }
+  }, [showDebug]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -64,6 +79,14 @@ const OwnerSettings: React.FC<OwnerSettingsProps> = ({ currentQrCode, heroSlides
 
   const handleDeleteSlide = (id: string) => {
     onSaveSlides(heroSlides.filter(s => s.id !== id));
+  };
+
+  const handleClearData = () => {
+    if (confirm('CRITICAL WARNING: This will delete ALL bookings and user accounts from this browser. This cannot be undone. Are you sure?')) {
+        localStorage.clear();
+        alert('Data cleared. Page will reload.');
+        window.location.reload();
+    }
   };
 
   return (
@@ -183,6 +206,56 @@ const OwnerSettings: React.FC<OwnerSettingsProps> = ({ currentQrCode, heroSlides
               </div>
            ))}
         </div>
+      </div>
+
+      <hr className="border-gray-100" />
+
+      {/* Data Inspector */}
+      <div>
+         <div 
+            className="flex items-center justify-between cursor-pointer"
+            onClick={() => setShowDebug(!showDebug)}
+         >
+            <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-600">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">System Data</h2>
+                    <p className="text-gray-500 text-sm">View local data stored in this browser.</p>
+                </div>
+            </div>
+            <button className="text-gray-400">
+                {showDebug ? '▼' : '▶'}
+            </button>
+         </div>
+
+         {showDebug && debugData && (
+             <div className="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-6 font-mono text-xs overflow-x-auto">
+                <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-gray-700 uppercase">LocalStorage Dump</h4>
+                    <button onClick={handleClearData} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 font-bold">
+                        ⚠️ Factory Reset (Clear Data)
+                    </button>
+                </div>
+                
+                <div className="space-y-4">
+                    <div>
+                        <span className="text-blue-600 font-bold">Total Cars in Fleet:</span> {debugData.totalCars}
+                    </div>
+                    <div>
+                        <span className="text-blue-600 font-bold">Registered Users:</span> {debugData.users.length}
+                        <pre className="mt-1 text-gray-600 bg-gray-100 p-2 rounded">{JSON.stringify(debugData.users, null, 2)}</pre>
+                    </div>
+                    <div>
+                        <span className="text-blue-600 font-bold">All Bookings:</span> {debugData.bookings.length}
+                        <pre className="mt-1 text-gray-600 bg-gray-100 p-2 rounded">{JSON.stringify(debugData.bookings.map(b => ({id: b.id, car: b.carName, customer: b.customerName, status: b.status})), null, 2)}</pre>
+                    </div>
+                </div>
+             </div>
+         )}
       </div>
 
     </div>

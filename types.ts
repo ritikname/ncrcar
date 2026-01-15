@@ -11,15 +11,15 @@ export interface Car {
   id: string;
   name: string;
   pricePerDay: number;
-  imageBase64: string; // Main Thumbnail
-  galleryImages: string[]; // Additional photos
+  imageBase64: string; // This will now hold the R2 URL
+  galleryImages: string[]; 
   status: CarStatus;
   createdAt: number;
   
   fuelType: FuelType;
   transmission: Transmission;
   seats: number;
-  rating: number; // 1-5
+  rating: number; 
   totalStock: number; 
   category: CarCategory; 
 }
@@ -29,11 +29,12 @@ export interface Booking {
   carId: string;
   carName: string;
   carImage: string;
+  userEmail?: string;
   customerName: string;
   customerPhone: string;
-  // New Contact Fields
+  
   email: string;
-  userLocation: string; // Geolocation
+  userLocation: string;
   aadharPhone: string;
   altPhone: string;
   
@@ -47,23 +48,21 @@ export interface Booking {
   createdAt: number;
   status: 'confirmed' | 'completed' | 'cancelled';
   
-  // Approval Flag
   isApproved?: boolean;
   
-  // KYC & Deposit Fields
-  aadharFront?: string;
-  aadharBack?: string;
-  licensePhoto?: string;
-  securityDepositType?: string; // Changed from literal union to string to match '₹5,000 Cash'
-  securityDepositTransactionId?: string; // New field for deposit UTR
-  
-  // Legal
-  signature?: string; // Base64 signature image
+  aadharFront?: string; // R2 URL
+  aadharBack?: string; // R2 URL
+  licensePhoto?: string; // R2 URL
+  securityDepositType?: string;
+  securityDepositTransactionId?: string; 
+  signature?: string; 
 }
 
 export interface UserProfile {
   name: string;
   phone: string;
+  email?: string;
+  role?: string;
 }
 
 export interface HeroSlide {
@@ -71,9 +70,4 @@ export interface HeroSlide {
   imageUrl: string;
   title: string;
   description: string;
-}
-
-export interface OwnerSettings {
-  paymentQrCode?: string;
-  heroSlides?: HeroSlide[];
 }

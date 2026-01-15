@@ -11,6 +11,7 @@ const AddCarForm: React.FC<AddCarFormProps> = ({ onAddCar }) => {
   const [price, setPrice] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
   
   const [fuelType, setFuelType] = useState<FuelType>('Petrol');
   const [transmission, setTransmission] = useState<Transmission>('Manual');
@@ -38,17 +39,18 @@ const AddCarForm: React.FC<AddCarFormProps> = ({ onAddCar }) => {
     reader.readAsDataURL(f);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price || !file || !totalStock) {
       alert('Please fill in all fields and provide the main image.');
       return;
     }
+    setLoading(true);
 
     const formData = new FormData();
     formData.append('name', name);
     formData.append('price', price);
-    formData.append('image', file);
+    formData.append('image', file); // Raw file for R2
     formData.append('fuelType', fuelType);
     formData.append('transmission', transmission);
     formData.append('category', category);
@@ -56,7 +58,8 @@ const AddCarForm: React.FC<AddCarFormProps> = ({ onAddCar }) => {
     formData.append('rating', rating);
     formData.append('totalStock', totalStock);
 
-    onAddCar(formData);
+    await onAddCar(formData);
+    setLoading(false);
 
     // Reset form
     setName('');
@@ -165,8 +168,8 @@ const AddCarForm: React.FC<AddCarFormProps> = ({ onAddCar }) => {
         </div>
         
         <div className="pt-4 border-t border-gray-100">
-             <button type="submit" className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
-              Add Vehicle
+             <button disabled={loading} type="submit" className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm disabled:opacity-50">
+              {loading ? 'Uploading to Cloud...' : 'Add Vehicle'}
             </button>
         </div>
       </form>
