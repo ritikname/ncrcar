@@ -146,38 +146,65 @@ const OwnerBookings: React.FC<OwnerBookingsProps> = ({ bookings, onReject, onApp
               {/* EXPANDED DETAILS */}
               {isExpanded && (
                   <div className="mt-6 pt-6 border-t border-gray-100 animate-fade-in">
-                      <h4 className="font-bold text-gray-900 mb-4 uppercase text-sm tracking-wider">Additional Contact & KYC Info</h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                           <div className="space-y-4">
-                               <div>
-                                   <label className="block text-xs font-bold text-gray-400 uppercase">Customer Email</label>
-                                   <p className="text-gray-800 font-medium">{booking.email || 'N/A'}</p>
-                               </div>
-                               <div>
-                                   <label className="block text-xs font-bold text-gray-400 uppercase">Aadhar Registered Phone</label>
-                                   <p className="text-gray-800 font-medium">{booking.aadharPhone || 'N/A'}</p>
-                               </div>
-                               <div>
-                                   <label className="block text-xs font-bold text-gray-400 uppercase">Alternative Contact</label>
-                                   <p className="text-gray-800 font-medium">{booking.altPhone || 'N/A'}</p>
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 mb-4 uppercase text-sm tracking-wider">Additional Contact & KYC Info</h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                              <div className="space-y-4">
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-400 uppercase">Customer Email</label>
+                                      <p className="text-gray-800 font-medium">{booking.email || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-400 uppercase">Aadhar Registered Phone</label>
+                                      <p className="text-gray-800 font-medium">{booking.aadharPhone || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-400 uppercase">Alternative Contact</label>
+                                      <p className="text-gray-800 font-medium">{booking.altPhone || 'N/A'}</p>
+                                  </div>
+                              </div>
+                              
+                              <div className="space-y-4">
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-400 uppercase">Customer Current Location (Geo)</label>
+                                      <p className="text-gray-800 font-medium bg-blue-50 p-2 rounded-lg border border-blue-100 text-sm">
+                                        📍 {booking.userLocation || 'Location not captured'}
+                                      </p>
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-400 uppercase">Security Deposit Choice</label>
+                                      <div className="text-red-600 font-bold border border-red-100 bg-red-50 p-2 rounded-lg inline-block">
+                                        {booking.securityDepositType || 'N/A'}
+                                      </div>
+                                      {booking.securityDepositTransactionId && (
+                                        <div className="mt-2 text-xs">
+                                            <span className="text-gray-400 font-bold uppercase block">Deposit UTR:</span>
+                                            <span className="font-mono bg-orange-50 text-orange-700 px-1 py-0.5 rounded border border-orange-100">
+                                                {booking.securityDepositTransactionId}
+                                            </span>
+                                        </div>
+                                      )}
+                                  </div>
+                              </div>
+                          </div>
+                        </div>
+                        
+                        {/* Signature Section in Owner Panel */}
+                        {booking.signature && (
+                           <div className="md:w-64 flex-shrink-0">
+                               <h4 className="font-bold text-gray-900 mb-4 uppercase text-sm tracking-wider">T&C Acceptance</h4>
+                               <div className="border border-gray-200 rounded-xl p-3 bg-gray-50">
+                                   <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Digital Signature</label>
+                                   <img src={booking.signature} alt="Customer Signature" className="w-full h-auto bg-white rounded-lg border border-gray-200" />
+                                   <div className="mt-2 text-[10px] text-green-600 font-bold flex items-center gap-1">
+                                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                      Terms Accepted
+                                   </div>
                                </div>
                            </div>
-                           
-                           <div className="space-y-4">
-                               <div>
-                                   <label className="block text-xs font-bold text-gray-400 uppercase">Customer Current Location (Geo)</label>
-                                   <p className="text-gray-800 font-medium bg-blue-50 p-2 rounded-lg border border-blue-100 text-sm">
-                                     📍 {booking.userLocation || 'Location not captured'}
-                                   </p>
-                               </div>
-                               <div>
-                                   <label className="block text-xs font-bold text-gray-400 uppercase">Security Deposit Choice</label>
-                                   <p className="text-red-600 font-bold border border-red-100 bg-red-50 p-2 rounded-lg inline-block">
-                                     {booking.securityDepositType || 'N/A'}
-                                   </p>
-                               </div>
-                           </div>
+                        )}
                       </div>
 
                       <h4 className="font-bold text-gray-900 mb-4 uppercase text-sm tracking-wider">Uploaded Documents</h4>

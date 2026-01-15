@@ -1,0 +1,21 @@
+
+name = "ncr-drive-api"
+main = "worker/index.ts"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ncr-drive-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "ncr-drive-images"
+
+[vars]
+JWT_SECRET = "REPLACE_WITH_LONG_RANDOM_STRING"
+OWNER_EMAIL = "admin@ncrdrive.com"
+# Bcrypt hash for the owner password
+OWNER_PASSWORD_HASH = "$2a$10$..." 
+EMAIL_SERVICE_URL = "YOUR_GOOGLE_SCRIPT_URL"
+FRONTEND_URL = "https://your-domain.com"

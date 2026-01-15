@@ -5,7 +5,7 @@ import { Booking } from '../types';
 // Your active Google Script URL
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzPZyzeLWmdPQpbVzpg6qYjWQ61iVj_8v-qS6zmjrhY17apui_235uwKzx_w37pP1QJbQ/exec"; 
 
-const OWNER_PHONE_NUMBER = "919876543210"; 
+const OWNER_PHONE_NUMBER = "9870375798"; 
 
 // --- SAFETY MECHANISM ---
 // Prevents double-firing the API for the same booking ID within a short time

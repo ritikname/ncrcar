@@ -58,7 +58,9 @@ const UserOnboardingModal: React.FC<UserOnboardingModalProps> = ({ isOpen, onCom
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Phone Number <span className="font-extrabold text-black">(Please add WhatsApp Number)</span>
+            </label>
             <input 
               type="tel" 
               value={phone}

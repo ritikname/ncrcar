@@ -54,7 +54,11 @@ export interface Booking {
   aadharFront?: string;
   aadharBack?: string;
   licensePhoto?: string;
-  securityDepositType?: 'Cash' | 'Laptop' | '2-Wheeler' | 'Passport';
+  securityDepositType?: string; // Changed from literal union to string to match '₹5,000 Cash'
+  securityDepositTransactionId?: string; // New field for deposit UTR
+  
+  // Legal
+  signature?: string; // Base64 signature image
 }
 
 export interface UserProfile {

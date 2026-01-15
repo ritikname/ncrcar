@@ -1,6 +1,6 @@
 {
-  "name": "Copy of Delhi NCR Car Rentals",
-  "description": "A demo car rental platform featuring dual views for customers and owners, utilizing local storage for state persistence.",
+  "name": "NCR Drive Car Rentals",
+  "description": "Premium car rental platform for Delhi NCR.",
   "requestFramePermissions": [
     "geolocation"
   ]
