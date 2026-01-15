@@ -1,7 +1,12 @@
 
 name = "ncr-drive-production"
+main = "worker/index.ts"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = "dist"
+
+# Static Assets (Frontend)
+[assets]
+directory = "dist"
+binding = "ASSETS"
 
 # R2 Bucket for Images
 [[r2_buckets]]
@@ -12,7 +17,7 @@ bucket_name = "ncr-drive-images"
 [[d1_databases]]
 binding = "DB"
 database_name = "ncr-drive-db"
-database_id = "REPLACE_WITH_YOUR_REAL_D1_DATABASE_ID" 
+database_id = "REPLACE_WITH_YOUR_REAL_D1_DATABASE_ID"
 
 [vars]
 ENVIRONMENT = "production"
