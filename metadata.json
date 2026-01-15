@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Delhi NCR Car Rentals",
+  "description": "A demo car rental platform featuring dual views for customers and owners, utilizing local storage for state persistence.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
